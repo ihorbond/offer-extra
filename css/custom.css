@@ -1,0 +1,25 @@
+body {
+    font-family: "Segoe UI", "Lucida Grande", Tahoma, sans-serif;
+    font-size: 100%;
+  }
+
+  .header{
+    background-color: #00ab80;
+    color: white;
+  }
+
+  .main {
+    width:300px;
+    max-height: 600px;
+    overflow:auto;
+  }
+
+  .btn-success {
+      background-color: #00ab80 !important;
+      color: white;
+      /* border: none; */
+  }
+
+  /* .btn-group-toggle {
+      border: 1px solid black;
+  } */
