@@ -23,7 +23,7 @@ var makeApiCall = (boardId, itemId) => {
 }
 
 var onSelectionModeStateChange = (currState) => {
-    console.log("%cSelection mode: ", consoleCssText, currState);
+    //console.debug("%cSelection mode: ", consoleCssText, currState);
     if (currState === state.ON) {
         addGlobalClickEventListener();
     } else {
@@ -63,7 +63,7 @@ var onGlobalClickEvent = (e) => {
     const aTag = e.path.find(isItemLink);
     if (aTag) {
         e.preventDefault();
-        console.info("%cFound <a> tag", consoleCssText, aTag);
+        //console.info("%cFound <a> tag", consoleCssText, aTag);
         addRemoveSelectionModeInputElem(aTag);
     }
 }
@@ -131,7 +131,6 @@ var extractId = (elem) => {
 
 chrome.runtime.onMessage.addListener(
     function(request, sender, sendResponse) {
-        console.log(request);
         onSelectionModeStateChange(request.enableBoardItemSelectionMode || state.OFF);
         sendResponse({ack: "10-4"});
     });
