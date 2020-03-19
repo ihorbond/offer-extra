@@ -11,21 +11,48 @@ var isItemLink = (elem) => {
 var onSearch = (e) => {
     e.preventDefault();
 
-    [...document.getElementsByTagName("a")].forEach(el => {
-        if (isItemLink(el)) {
-            const query = searchInput.value.trim();
+    const query = searchInput.value.trim();
+    let newCount = 0;
 
-            if(query === "") {
+    if(query === '') {
+        boardItems.forEach(x => x.parentElement.hidden = false);
+        newCount = boardItems.length;
+    }
+    else {
+        boardItems.forEach(el => {
+            const description = [...el.firstChild.lastChild.getElementsByTagName("span")]
+                .map(x => x.innerText)
+                .join('')
+                .toLowerCase();
+    
+            console.log(description, el.parentElement.hidden);
+            if(description.indexOf(query) === -1) {
+                el.parentElement.hidden = true;
+            }
+            else{
                 el.parentElement.hidden = false;
+                newCount++;
             }
-            else {
-                const description = [...el.firstChild.lastChild.getElementsByTagName("span")]
-                    .map(x => x.innerText)
-                    .join('')
-                    .toLowerCase();
-                el.parentElement.hidden = description.indexOf(query) === -1;
-            }
-        }
+        });
+    }
+    
+    itemCount.innerText = `${newCount} item${newCount === 1 ? '':'s'}`;
+    console.log("=================================================================");
+}
+
+const itemCount = [...document.getElementsByTagName('span')].filter(x => /\d+\s[A-Za-z]+/.test(x.innerText))[0];
+console.log(itemCount);
+
+var boardItems = [];
+const boardItemsContainer = document.getElementById("board-items");
+if(boardItemsContainer) {
+    boardItemsContainer.style.flexWrap = 'wrap';
+    boardItems = [...boardItemsContainer.getElementsByTagName("a")];
+    boardItemsContainer.innerHTML = '';
+    boardItems.forEach(x => {
+        var div = document.createElement("div");
+        div.appendChild(x);
+        boardItemsContainer.appendChild(div);
     });
 }
 
