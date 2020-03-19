@@ -19,7 +19,8 @@
     "permissions": [
       "activeTab",
       "storage",
-      "declarativeContent"
+      "declarativeContent",
+      "tabs"
     ],
     "icons": {
       "16": "images/logo_16x16.png",

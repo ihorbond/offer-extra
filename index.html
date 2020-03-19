@@ -21,49 +21,19 @@
             </div>
         </div>
         <div class="row">
-            <div class="col-sm-12">
-                <label>Select items in boards</label>
-                <br>
-                <div class="btn-group btn-group-toggle" data-toggle="buttons">
-                    <label class="btn btn-sm btn-success active">
-                        <input type="radio" name="options"> ON
-                    </label>
-                    <label class="btn btn-sm btn-light">
-                        <input type="radio" name="options" checked> OFF
-                    </label>
+            <div class="col-sm-12">                
+                <div class="slide-container">
+                    <label class="slide-label">Select items in boards</label>
+                    <input type="range" min="0" max="1" value="0" class="slider slider-off" id="boardItemSelectionModeSlider">
+                </div>
+                <!-- <div class="slide-container">
+                    <label class="slide-label">Search items in boards</label>
+                    <input type="range" min="0" max="1" value="0" class="slider slider-off" id="boardItemSearchModeSlider">
+                </div> -->
                 </div>
             </div>
         </div>
         <br>
-        <button id="test">test</span>
-        <!-- <div class="row">
-            <div class="col-sm-12">
-                <label>Search boards</label>
-                <br>
-                <div class="btn-group btn-group-toggle" data-toggle="buttons">
-                    <label class="btn btn-sm btn-success active">
-                        <input type="radio" name="options" id="searchBoardOn" checked> ON
-                    </label>
-                    <label class="btn btn-sm btn-light">
-                        <input type="radio" name="options" id="searchBoardOff"> OFF
-                    </label>
-                </div>
-            </div>
-        </div>
-        <div class="row">
-            <div class="col-sm-12">
-                <label>Delete boards</label>
-                <br>
-                <div class="btn-group btn-group-toggle" data-toggle="buttons">
-                    <label class="btn btn-sm btn-success active">
-                        <input type="radio" name="options" id="deleteBoardOn" checked> ON
-                    </label>
-                    <label class="btn btn-sm btn-light">
-                        <input type="radio" name="options" id="deleteBoardOff"> OFF
-                    </label>
-                </div>
-            </div>
-        </div> -->
     </div>
     <script src="js/jquery.min.js"></script>
     <script src="js/bootstrap.min.js"></script>

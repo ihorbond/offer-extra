@@ -1,7 +1,15 @@
+let itemIdsToDelete = [];
+const removeBtnId = "remove-items-btn";
+const consoleCssText = "background: #00ab80; color: white; font-weight:bold";
+
+const state = {
+    ON: 1,
+    OFF: 0
+};
+
 var onDeleteItemsClick = () => {
     const boardId = extractId(document.location);
     itemIdsToDelete.forEach(id => makeApiCall(boardId, id));
-    chrome.storage.sync.set({'enableBoardItemSelectionMode': false}, _ => {});
     location.reload();
 }
 
@@ -14,9 +22,9 @@ var makeApiCall = (boardId, itemId) => {
     }).then(res => res.json()).then(console.log)
 }
 
-var onSelectionModeInputChange = (on) => {
-    console.log("%cToggle checkbox event", consoleCssText, on);
-    if (on) {
+var onSelectionModeStateChange = (currState) => {
+    console.log("%cSelection mode: ", consoleCssText, currState);
+    if (currState === state.ON) {
         addGlobalClickEventListener();
     } else {
         removeGlobalClickEventListener();
@@ -86,7 +94,6 @@ var addRemoveDeleteItemsBtn = () => {
             color:white;
             padding:12px`;
         removeItemsBtn.addEventListener("click", onDeleteItemsClick);
-        //const plusButton = document.getElementById("db-add-collaborator-btn");
         const container = document.getElementById("db-add-collaborator-btn").parentElement;
         container.insertBefore(removeItemsBtn, container.children[0]);
     }
@@ -122,6 +129,17 @@ var extractId = (elem) => {
     return urlParts[lastPartIndex];
 }
 
+chrome.runtime.onMessage.addListener(
+    function(request, sender, sendResponse) {
+        console.log(request);
+        onSelectionModeStateChange(request.enableBoardItemSelectionMode || state.OFF);
+        sendResponse({ack: "10-4"});
+    });
+
+//const plusButton = document.getElementById("db-add-collaborator-btn");
+//const selectionModeCheckbox = createSelectionModeInputElem();
+//plusButton.parentElement.insertBefore(selectionModeCheckbox, plusButton);
+
 // var createSelectionModeInputElem = () => {
 //     const selectionModeCheckbox = document.createElement("input");
 //     selectionModeCheckbox.type = "checkbox";
@@ -129,37 +147,6 @@ var extractId = (elem) => {
 //     selectionModeCheckbox.title = "Selection mode on/off";
 //     selectionModeCheckbox.id = "selection-mode-checkbox";
 //     selectionModeCheckbox.style.cssText = "width:2.5em;height:2.5em;"
-//     selectionModeCheckbox.addEventListener("change", onSelectionModeInputChange);
+//     selectionModeCheckbox.addEventListener("change", );
 //     return selectionModeCheckbox;
 // }
-
-chrome.storage.sync.get('enableBoardItemSelectionMode', data => {
-    console.log(data);
-    if(Object.keys(data).length !== 0) {
-        onSelectionModeInputChange(!!data.enableBoardItemSelectionMode);
-    }
-});
-
-chrome.storage.onChanged.addListener(function(changes, namespace) {
-    for (var key in changes) {
-        if(key === 'enableBoardItemSelectionMode') {
-            var storageChange = changes[key];
-            onSelectionModeInputChange(storageChange.newValue);
-            console.log('Storage key "%s" in namespace "%s" changed. ' +
-                  'Old value was "%s", new value is "%s".',
-                  key,
-                  namespace,
-                  storageChange.oldValue,
-                  storageChange.newValue);
-            break;
-          }
-    }
-  });
-
-
-let itemIdsToDelete = [];
-const removeBtnId = "remove-items-btn";
-const consoleCssText = "background: #00ab80; color: white; font-weight:bold";
-//const plusButton = document.getElementById("db-add-collaborator-btn");
-//const selectionModeCheckbox = createSelectionModeInputElem();
-//plusButton.parentElement.insertBefore(selectionModeCheckbox, plusButton);
