@@ -25,7 +25,7 @@ var onSearch = (e) => {
                 .join('')
                 .toLowerCase();
     
-            console.log(description, el.parentElement.hidden);
+            //console.log(description, el.parentElement.hidden);
             if(description.indexOf(query) === -1) {
                 el.parentElement.hidden = true;
             }
@@ -37,20 +37,19 @@ var onSearch = (e) => {
     }
     
     itemCount.innerText = `${newCount} item${newCount === 1 ? '':'s'}`;
-    console.log("=================================================================");
+    //console.log("=================================================================");
 }
 
 const itemCount = [...document.getElementsByTagName('span')].filter(x => /\d+\s[A-Za-z]+/.test(x.innerText))[0];
-console.log(itemCount);
 
-var boardItems = [];
+let boardItems = [];
 const boardItemsContainer = document.getElementById("board-items");
 if(boardItemsContainer) {
     boardItemsContainer.style.flexWrap = 'wrap';
     boardItems = [...boardItemsContainer.getElementsByTagName("a")];
     boardItemsContainer.innerHTML = '';
     boardItems.forEach(x => {
-        var div = document.createElement("div");
+        const div = document.createElement("div");
         div.appendChild(x);
         boardItemsContainer.appendChild(div);
     });
