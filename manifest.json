@@ -34,6 +34,10 @@
       {
         "matches": ["https://offerup.com/boards/*"],
         "js": ["js/boards_delete_script.js"]
+      },
+      {
+        "matches": ["https://offerup.com/item/detail/*"],
+        "js": ["js/car_true_value.js"]
       }
     ]
   }
