@@ -19,7 +19,7 @@
     "permissions": [
       "storage",
       "declarativeContent",
-      "tabs"
+      "webNavigation"
     ],
     "icons": {
       "16": "images/logo_16x16.png",
@@ -39,5 +39,6 @@
         "matches": ["https://offerup.com/item/detail/*"],
         "js": ["js/car_true_value.js"]
       }
-    ]
+    ],
+    "offline_enabled":false
   }
