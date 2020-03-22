@@ -2,7 +2,6 @@ const productCatMetaTagContent = (document.head.querySelector("meta[property='pr
 const isCarDetailPage = productCatMetaTagContent.indexOf("car") > -1 || productCatMetaTagContent.indexOf("truck") > -1;
 
 const keywords = {
-    "FORSALE": "for sale",
     "OUTOFSTOCK": "out of stock",
     "IN": "in",
     "DASH": "-"
@@ -13,32 +12,114 @@ const conditions = {
     "DAMAGED": "damaged"
 };
 
+const key = atob('TDNsNng3aUpBY1h3Y0tGUFFqdkRWNEdlYkVPYUlDUWs=');
+let carMake = null;
+let carModel = null;
+let carYear = null;
+let carTrim = null;
+
 if(isCarDetailPage) {
     console.info("We are on car listing page");
-    const pageTitle = document.title.toLowerCase();
-    const year = getYear(pageTitle);
-    const makeAndModel = getMakeAndModel(pageTitle);
-    const isSold = checkSold();
-    const mileage = getMileage();
+    const pageTitle = document.title.toLowerCase().replace(/\W+/gi, '');
+    const forSaleIndex = pageTitle.indexOf('forsale');
+    const desc = pageTitle.substring(0, forSaleIndex).trim();
+    carYear = getYear(pageTitle);
     const condition = getCondition();
-    getZipCodeAsync(getZipCodeApiUrl(pageTitle)).then(zipCode => {
-        if(zipCode){
-            console.log(`Year: ${year}`, `MakeModel: ${makeAndModel}`, isSold, condition, mileage, zipCode);
-        }else {
-            getZipCodeAsyncGoogle(getGoogleMapUrl()).then(zipCode => {
-                console.log(`Year: ${year}`, `MakeModel: ${makeAndModel}`, isSold, condition, mileage, zipCode);
-            });
+
+    if(condition === conditions.USED) {
+        getMakeModelTrim(desc);
+    }
+
+
+    // const isSold = checkSold();
+    // const mileage = getMileage();
+    // const similarItems = getSimilarItemsJson();
+
+    // getZipCodeAsync(getZipCodeApiUrl(pageTitle)).then(zipCode => {
+    //     if(zipCode){
+    //         console.log(`Year: ${year}`, `MakeModel: ${makeAndModel}`, isSold, condition, mileage, zipCode);
+    //     }else {
+    //         getZipCodeAsyncGoogle(getGoogleMapUrl()).then(zipCode => {
+    //             console.log(`Year: ${year}`, `MakeModel: ${makeAndModel}`, isSold, condition, mileage, zipCode);
+    //         });
+    //     }
+    // })
+}
+
+async function getMakeModelTrim(desc) {
+    const makesUrl = `https://marketcheck-prod.apigee.net/v1/search?api_key=${key}&rows=0&facets=make|0|200`;
+
+    await fetch(makesUrl)
+        .then(makesResponse => getMake(makesResponse, desc))
+        .then(make => getModel(make, desc))
+        .then(model =>getTrim(carMake, model, carYear, desc))
+        .then(_ => console.log(carYear, carMake, carModel, carTrim))
+        .catch(err => console.error(err));
+}
+
+async function getMake(res, desc) {
+    if(res.ok) {
+        const json = await res.json();
+        const match = json.facets.make.find(x => desc.indexOf(x.item.toLowerCase()) > -1);
+        if(match){
+            carMake = match.item;
+            return Promise.resolve(carMake);
         }
-    })
+        else {
+            return Promise.reject("Make not found");
+        }
+    }
+
+    return Promise.reject(res);
+}
+
+async function getModel(make, desc) {
+    const modelUrl = `https://marketcheck-prod.apigee.net/v1/search?api_key=${key}&rows=0&make=${make}&facets=model|0|30`
+    const res = await fetch(modelUrl);
+    if(res.ok) {
+        const json = await res.json();
+        const match = json.facets.model.find(x => desc.indexOf(x.item.toLowerCase()) > -1);
+        if(match) {
+            carModel = match.item;
+            return Promise.resolve(carModel);
+        }
+        else {
+            return Promise.reject("Model not found");
+        }
+    }
+
+    return Promise.reject(res);
+}
+
+async function getTrim(make, model, year, desc) {
+    const trimUrl = `https://marketcheck-prod.apigee.net/v1/search?api_key=${key}&rows=0&car_type=used&make=${make}&model=${model}&year=${year}&facets=trim`;
+    const res = await fetch(trimUrl);
+    if(res.ok) {
+        const json = await res.json();
+        const match = json.facets.trim.find(x => desc.indexOf(x.item.toLowerCase()) > -1);
+        if(match) {
+            carTrim = match.item;
+            return Promise.resolve(carTrim);
+        }
+    }
+
+    return Promise.resolve("");
+}
+
+function getSimilarItemsJson() {
+    try {
+        let scriptText = [...document.scripts].find(s => s.text.trim().startsWith("window.__OU_PROPS")).text;
+        const startIndex = text.text.indexOf('{');
+        scriptText = scriptText.substring(startIndex) + '\"}}}]}]}';
+        return JSON.parse(scriptText);
+    }
+    catch (r) {
+        return null;
+    }
 }
 
 function getYear(s) {
     return s.match(/\d{4}/)[0];
-}
-
-function getMakeAndModel(s) {
-    const forSaleIndex = s.indexOf(keywords.FORSALE);
-    return s.substring(4, forSaleIndex).trim();
 }
 
 function checkSold() {
@@ -56,44 +137,44 @@ function getMileage() {
         : null;
 }
 
-function getZipCodeApiUrl(s) {
-    let inIndex = s.indexOf(keywords.IN);
-    inIndex += keywords.IN.length;
-    const dashIndex = s.indexOf(keywords.DASH);
-    const location = s.substring(inIndex, dashIndex).trim().split(', ');
-    const city = location[0];
-    const state = location[1];
-    const key = atob('anMtSWhPRjJDZklHRzU1czZBajJhcjdHZkZYRjgxOWN0TlU4YkpMd0tRdDhCaE1zTjQ1TEpQMGFsd29sMVoyRjR4TA==');
-    return `https://www.zipcodeapi.com/rest/${key}/city-zips.json/${city}/${state}`;
-}
+// function getZipCodeApiUrl(s) {
+//     let inIndex = s.indexOf(keywords.IN);
+//     inIndex += keywords.IN.length;
+//     const dashIndex = s.indexOf(keywords.DASH);
+//     const location = s.substring(inIndex, dashIndex).trim().split(', ');
+//     const city = location[0];
+//     const state = location[1];
+//     const key = atob('anMtSWhPRjJDZklHRzU1czZBajJhcjdHZkZYRjgxOWN0TlU4YkpMd0tRdDhCaE1zTjQ1TEpQMGFsd29sMVoyRjR4TA==');
+//     return `https://www.zipcodeapi.com/rest/${key}/city-zips.json/${city}/${state}`;
+// }
 
-function getGoogleMapUrl() {
-    const lat = document.head.querySelector("meta[property='place:location:latitude']").getAttribute("content");
-    const lon = document.head.querySelector("meta[property='place:location:longitude']").getAttribute("content");
-    const scriptScr = [...document.scripts].find(s => s.src.startsWith('https://maps.googleapis.com/maps/api/js')).src;
-    const query = scriptScr.split('?')[1];
-    const urlParams = new URLSearchParams(query);
-    const key = urlParams.get('key');
-    return `https://maps.googleapis.com/maps/api/geocode/json?latlng=${lat},${lon}&key=${key}&result_type=postal_code`;
-}
+// function getGoogleMapUrl() {
+//     const lat = document.head.querySelector("meta[property='place:location:latitude']").getAttribute("content");
+//     const lon = document.head.querySelector("meta[property='place:location:longitude']").getAttribute("content");
+//     const scriptScr = [...document.scripts].find(s => s.src.startsWith('https://maps.googleapis.com/maps/api/js')).src;
+//     const query = scriptScr.split('?')[1];
+//     const urlParams = new URLSearchParams(query);
+//     const key = urlParams.get('key');
+//     return `https://maps.googleapis.com/maps/api/geocode/json?latlng=${lat},${lon}&key=${key}&result_type=postal_code`;
+// }
 
-async function getZipCodeAsync(url) {
-    const res = await fetch(url);
-    console.log(res);
-    if(!res.ok || res.status === 429) {
-        //429 means exceeded quota
-        return null;
-    }
-    const json = await res.json();
-    return json.zip_codes[0];
-}
+// async function getZipCodeAsync(url) {
+//     const res = await fetch(url);
+//     console.log(res);
+//     if(!res.ok || res.status === 429) {
+//         //429 means exceeded quota
+//         return null;
+//     }
+//     const json = await res.json();
+//     return json.zip_codes[0];
+// }
 
-async function getZipCodeAsyncGoogle(url) {
-    const res = await fetch(url);
-    console.log(res);
-    if(!res.ok) {
-        return null;
-    }
-    const json = await res.json();
-    return json.results[0].address_components.find(x => x.types.includes("postal_code")).short_name;
-}
+// async function getZipCodeAsyncGoogle(url) {
+//     const res = await fetch(url);
+//     console.log(res);
+//     if(!res.ok) {
+//         return null;
+//     }
+//     const json = await res.json();
+//     return json.results[0].address_components.find(x => x.types.includes("postal_code")).short_name;
+// }
