@@ -13,26 +13,32 @@ const conditions = {
 };
 
 const key = atob('TDNsNng3aUpBY1h3Y0tGUFFqdkRWNEdlYkVPYUlDUWs=');
-let carMake = null;
-let carModel = null;
-let carYear = null;
-let carTrim = null;
+let make = null;
+let model = null;
+let year = null;
+let trim = null;
+let lat = null;
+let lng = null;
+let mileage = null;
 
 if(isCarDetailPage) {
     console.info("We are on car listing page");
-    const pageTitle = document.title.toLowerCase().replace(/\W+/gi, '');
-    const forSaleIndex = pageTitle.indexOf('forsale');
-    const desc = pageTitle.substring(0, forSaleIndex).trim();
-    carYear = getYear(pageTitle);
     const condition = getCondition();
 
     if(condition === conditions.USED) {
+        const pageTitle = document.title.toLowerCase().replace(/\W+/gi, '');
+        const forSaleIndex = pageTitle.indexOf('forsale');
+        const desc = pageTitle.substring(0, forSaleIndex).trim();
+        year = getYear(pageTitle);
+        lat = document.head.querySelector("meta[property='place:location:latitude']").getAttribute("content");
+        lng = document.head.querySelector("meta[property='place:location:longitude']").getAttribute("content");
+        mileage = getMileage();
+        
+        //showAlternatives({a:1, b:2});
         getMakeModelTrim(desc);
     }
 
-
     // const isSold = checkSold();
-    // const mileage = getMileage();
     // const similarItems = getSimilarItemsJson();
 
     // getZipCodeAsync(getZipCodeApiUrl(pageTitle)).then(zipCode => {
@@ -47,14 +53,30 @@ if(isCarDetailPage) {
 }
 
 async function getMakeModelTrim(desc) {
-    const makesUrl = `https://marketcheck-prod.apigee.net/v1/search?api_key=${key}&rows=0&facets=make|0|200`;
+    const url = `https://marketcheck-prod.apigee.net/v1/search?api_key=${key}&rows=0&facets=make|0|200`;
 
-    await fetch(makesUrl)
+    await fetch(url)
         .then(makesResponse => getMake(makesResponse, desc))
         .then(make => getModel(make, desc))
-        .then(model =>getTrim(carMake, model, carYear, desc))
-        .then(_ => console.log(carYear, carMake, carModel, carTrim))
+        .then(model => getTrim(make, model, year, desc))
+        .then(_ => getSimilarListings(50, conditions.USED, 'price', 'asc', true))
+        .then(json => showAlternatives(json))
         .catch(err => console.error(err));
+}
+
+function showAlternatives(json) {
+    console.log(json);
+    chrome.storage.local.set({'similarCars': json});
+
+    const xpath = "//div[@data-test='price-label']";
+    const priceLabelDiv = document.evaluate(xpath, document, null, XPathResult.FIRST_ORDERED_NODE_TYPE, null).singleNodeValue;
+    const parent = priceLabelDiv.parentElement;
+    const myHr = document.createElement('hr');
+    const myLink = document.createElement('a');
+    myLink.innerText = "See cheaper vehicles with similar mileage nearby";
+    myLink.addEventListener('click', () => chrome.runtime.sendMessage({showSimilarCars: true}));
+    parent.insertBefore(myHr, priceLabelDiv.nextSibling);
+    parent.insertBefore(myLink, myHr);
 }
 
 async function getMake(res, desc) {
@@ -62,8 +84,8 @@ async function getMake(res, desc) {
         const json = await res.json();
         const match = json.facets.make.find(x => desc.indexOf(x.item.toLowerCase()) > -1);
         if(match){
-            carMake = match.item;
-            return Promise.resolve(carMake);
+            make = match.item;
+            return Promise.resolve(make);
         }
         else {
             return Promise.reject("Make not found");
@@ -74,14 +96,14 @@ async function getMake(res, desc) {
 }
 
 async function getModel(make, desc) {
-    const modelUrl = `https://marketcheck-prod.apigee.net/v1/search?api_key=${key}&rows=0&make=${make}&facets=model|0|30`
-    const res = await fetch(modelUrl);
+    const url = `https://marketcheck-prod.apigee.net/v1/search?api_key=${key}&rows=0&make=${make}&facets=model|0|30`
+    const res = await fetch(url);
     if(res.ok) {
         const json = await res.json();
         const match = json.facets.model.find(x => desc.indexOf(x.item.toLowerCase()) > -1);
         if(match) {
-            carModel = match.item;
-            return Promise.resolve(carModel);
+            model = match.item;
+            return Promise.resolve(model);
         }
         else {
             return Promise.reject("Model not found");
@@ -92,18 +114,45 @@ async function getModel(make, desc) {
 }
 
 async function getTrim(make, model, year, desc) {
-    const trimUrl = `https://marketcheck-prod.apigee.net/v1/search?api_key=${key}&rows=0&car_type=used&make=${make}&model=${model}&year=${year}&facets=trim`;
-    const res = await fetch(trimUrl);
+    const url = `https://marketcheck-prod.apigee.net/v1/search?api_key=${key}&rows=0&car_type=used&make=${make}&model=${model}&year=${year}&facets=trim`;
+    const res = await fetch(url);
     if(res.ok) {
         const json = await res.json();
         const match = json.facets.trim.find(x => desc.indexOf(x.item.toLowerCase()) > -1);
         if(match) {
-            carTrim = match.item;
-            return Promise.resolve(carTrim);
+            trim = match.item;
+            return Promise.resolve(trim);
         }
     }
 
-    return Promise.resolve("");
+    return Promise.resolve(null);
+}
+
+async function getSimilarListings(radius, condition, sortBy, sortOrder, includeStats) {
+    let url = [`https://marketcheck-prod.apigee.net/v2/search/car/active`,
+                `?api_key=${key}`,
+                `&make=${make}`,
+                `&model=${model}`,
+                `&year=${year}`,
+                `&car_type=${condition}`,
+                `&start=0`,
+                `&rows=50`,
+                `&latitude=${lat}`,
+                `&longitude=${lng}`,
+                `&radius=${radius}`,
+                `&sort_by=${sortBy}`,
+                `&sort_order=${sortOrder}`]
+                .join('');
+    if(trim) url += `&trim=${trim}`;
+    if(includeStats) url += `&stats=miles,price,dom`;
+
+    const res = await fetch(url);
+    if(res.ok) {
+        const json = await res.json();
+        return Promise.resolve(json);
+    }
+
+    return Promise.reject(res);
 }
 
 function getSimilarItemsJson() {

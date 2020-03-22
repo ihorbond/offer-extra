@@ -12,3 +12,10 @@
   chrome.webNavigation.onCompleted.addListener(function() {
     chrome.storage.sync.remove('enableBoardItemSelectionMode', _ => {});
 }, {url: [{urlPrefix : 'https://offerup.com/board/'}]});
+
+chrome.runtime.onMessage.addListener(
+  function(request, sender, sendResponse) {
+    if(request.showSimilarCars) {
+      chrome.tabs.create({url: chrome.extension.getURL('pages/similar_cars.html')});
+    }
+  });
