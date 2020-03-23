@@ -34,6 +34,7 @@ if(isCarDetailPage) {
         lng = document.head.querySelector("meta[property='place:location:longitude']").getAttribute("content");
         mileage = getMileage();
         
+
         //showAlternatives({a:1, b:2});
         getMakeModelTrim(desc);
     }
@@ -66,6 +67,10 @@ async function getMakeModelTrim(desc) {
 
 function showAlternatives(json) {
     console.log(json);
+    json.current_car = current_car = {
+        price: getPrice(),
+        mileage: mileage
+    };
     chrome.storage.local.set({'similarCars': json});
 
     const xpath = "//div[@data-test='price-label']";
@@ -73,10 +78,15 @@ function showAlternatives(json) {
     const parent = priceLabelDiv.parentElement;
     const myHr = document.createElement('hr');
     const myLink = document.createElement('a');
+    // const spinner = htmlToElement(`
+    //     <div class="spinner-border text-success" role="status">
+    //         <span class="sr-only">Loading OfferExtra offers...</span>
+    //     </div>`);
     myLink.innerText = "See cheaper vehicles with similar mileage nearby";
     myLink.addEventListener('click', () => chrome.runtime.sendMessage({showSimilarCars: true}));
     parent.insertBefore(myHr, priceLabelDiv.nextSibling);
     parent.insertBefore(myLink, myHr);
+    //parent.insertBefore(spinner, myLink);
 }
 
 async function getMake(res, desc) {
@@ -179,11 +189,22 @@ function getCondition() {
     return (document.head.querySelector("meta[property='product:condition']").getAttribute("content") || '').toLowerCase();
 }
 
+function getPrice() {
+    return (document.head.querySelector("meta[property='product:price:amount']").getAttribute("content") || null);
+}
+
 function getMileage() {
     const matches = document.body.innerText.match(/\d+\sMiles/);
     return matches.length > 0 
         ? matches[0].split(' ')[0] 
         : null;
+}
+
+function htmlToElement(html) {
+    var template = document.createElement('template');
+    html = html.trim(); 
+    template.innerHTML = html;
+    return template.content.firstChild;
 }
 
 // function getZipCodeApiUrl(s) {

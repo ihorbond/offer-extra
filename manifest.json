@@ -40,5 +40,9 @@
         "js": ["js/car_true_value.js"]
       }
     ],
+    "web_accessible_resources":[
+      "images/*.*",
+      "js/*.*"
+    ],
     "offline_enabled":false
   }

@@ -1,0 +1,14 @@
+#container {
+    display: flex;
+    flex-direction: row;
+    flex-wrap: wrap;
+    justify-content: space-evenly;
+}
+
+.card-img-top {
+    height: 220px;
+}
+
+.card-header-text {
+    display: contents;
+}
