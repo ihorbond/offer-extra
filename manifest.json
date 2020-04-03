@@ -1,6 +1,6 @@
 {
     "name": "Offer Extra",
-    "version": "0.0.1",
+    "version": "1.0.0",
     "description": "Unofficial OfferUp extension",
     "manifest_version": 2,
     "background": {
@@ -37,7 +37,8 @@
       },
       {
         "matches": ["https://offerup.com/item/detail/*"],
-        "js": ["js/car_true_value.js"]
+        "js": ["js/car_true_value.js"],
+        "css": ["css/bootstrap.min.css"]
       }
     ],
     "web_accessible_resources":[
