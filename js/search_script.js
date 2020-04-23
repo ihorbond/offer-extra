@@ -11,7 +11,7 @@ var isItemLink = (elem) => {
 var onSearch = (e) => {
     e.preventDefault();
 
-    const query = searchInput.value.trim();
+    const query = searchInput.value.trim().toLowerCase();
     let newCount = 0;
 
     if(query === '') {
