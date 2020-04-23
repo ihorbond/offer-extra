@@ -92,7 +92,8 @@ var addRemoveDeleteItemsBtn = () => {
             border-style:none;
             font-weight:bold;
             color:white;
-            padding:12px`;
+            padding:12px;
+            margin-right:5px`;
         removeItemsBtn.addEventListener("click", onDeleteItemsClick);
         const container = document.getElementById("db-add-collaborator-btn").parentElement;
         container.insertBefore(removeItemsBtn, container.children[0]);
@@ -135,17 +136,31 @@ chrome.runtime.onMessage.addListener(
         sendResponse({ack: "10-4"});
     });
 
-//const plusButton = document.getElementById("db-add-collaborator-btn");
-//const selectionModeCheckbox = createSelectionModeInputElem();
-//plusButton.parentElement.insertBefore(selectionModeCheckbox, plusButton);
+var onSelectSold = (soldItems) => {
+    soldItems.forEach(addRemoveSelectionModeInputElem);
+}
 
-// var createSelectionModeInputElem = () => {
-//     const selectionModeCheckbox = document.createElement("input");
-//     selectionModeCheckbox.type = "checkbox";
-//     selectionModeCheckbox.checked = false;
-//     selectionModeCheckbox.title = "Selection mode on/off";
-//     selectionModeCheckbox.id = "selection-mode-checkbox";
-//     selectionModeCheckbox.style.cssText = "width:2.5em;height:2.5em;"
-//     selectionModeCheckbox.addEventListener("change", );
-//     return selectionModeCheckbox;
-// }
+var createSelectSoldBtn = (soldItems) => {
+    const selectSoldBtn = document.createElement("button");
+    selectSoldBtn.innerText = "Select SOLD";
+    selectSoldBtn.style.cssText = `
+        cursor:pointer;
+        background-color:#00ab80;
+        border-color:#00ab80;
+        border-radius:8px;
+        border-style:none;
+        font-weight:bold;
+        color:white;
+        padding:12px`;
+    selectSoldBtn.addEventListener("click", e => onSelectSold(soldItems));
+    return selectSoldBtn;
+}
+
+const soldItems = [...document.getElementsByTagName('a')]
+        .filter(aTag => isItemLink(aTag) && aTag.innerText.indexOf('SOLD') !== -1);
+
+if(soldItems.length > 0) {
+    const plusButton = document.getElementById("db-add-collaborator-btn");
+    const selectSoldBtn = createSelectSoldBtn(soldItems);
+    plusButton.parentElement.insertBefore(selectSoldBtn, plusButton);
+}
