@@ -144,7 +144,7 @@ function showManualEntry() {
 }
 
 async function getMakeModelTrim() {
-    const url = `https://marketcheck-prod.apigee.net/v1/search?api_key=${key}&rows=0&facets=make|0|200`;
+    const url = `https://marketcheck-prod.apigee.net/v2/search/car/active?api_key=${key}&rows=0&facets=make|0|200`;
     const radius = 50; //mi
 
     await fetch(url)
@@ -175,7 +175,7 @@ async function getMake(res) {
 
 async function getModel(make) {
     currentCar.make = make;
-    const url = `https://marketcheck-prod.apigee.net/v1/search?api_key=${key}&rows=0&make=${currentCar.make}&facets=model|0|30`
+    const url = `https://marketcheck-prod.apigee.net/v2/search/car/active?api_key=${key}&rows=0&make=${currentCar.make}&facets=model|0|30`
     const res = await fetch(url);
     if (res.ok) {
         const json = await res.json();
@@ -194,7 +194,7 @@ async function getTrim(model) {
     const startPos = currentCar.year.length + currentCar.make.length + currentCar.model.length;
     const trim = currentCar.description.substring(startPos);
     if (trim.length > 0) {
-        const url = `https://marketcheck-prod.apigee.net/v1/search?api_key=${key}&rows=0&make=${currentCar.make}&model=${currentCar.model}&year=${currentCar.year}&facets=trim`;
+        const url = `https://marketcheck-prod.apigee.net/v2/search/car/active?api_key=${key}&rows=0&make=${currentCar.make}&model=${currentCar.model}&year=${currentCar.year}&facets=trim`;
         const res = await fetch(url);
         if (res.ok) {
             const json = await res.json();
