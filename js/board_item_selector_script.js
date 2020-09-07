@@ -9,11 +9,11 @@ const state = {
 
 var onDeleteItemsClick = () => {
     const boardId = extractId(document.location);
-    itemIdsToDelete.forEach(id => makeApiCall(boardId, id));
+    itemIdsToDelete.forEach(id => callApiDelete(boardId, id));
     location.reload();
 }
 
-var makeApiCall = (boardId, itemId) => {
+var callApiDelete = (boardId, itemId) => {
     fetch(`https://offerup.com/webapi/offer_boards/v1/boards/${boardId}/items/${itemId}`, {
         method: 'DELETE',
         headers: {
@@ -83,7 +83,7 @@ var addRemoveDeleteItemsBtn = () => {
     if (!removeItemsBtn) {
         removeItemsBtn = document.createElement("button");
         removeItemsBtn.id = removeBtnId;
-        removeItemsBtn.innerText = "Remove";
+        removeItemsBtn.innerText = "Remove SOLD";
         removeItemsBtn.style.cssText = `
             cursor:pointer;
             background-color:#00ab80;
@@ -95,7 +95,7 @@ var addRemoveDeleteItemsBtn = () => {
             padding:12px;
             margin-right:5px`;
         removeItemsBtn.addEventListener("click", onDeleteItemsClick);
-        const container = document.getElementById("db-add-collaborator-btn").parentElement;
+        const container = [...document.getElementsByTagName("a")].find(x => /\/p\/\d+\//.test(x.href) && x.style.backgroundImage).parentElement;
         container.insertBefore(removeItemsBtn, container.children[0]);
     }
 
@@ -130,12 +130,6 @@ var extractId = (elem) => {
     return urlParts[lastPartIndex];
 }
 
-chrome.runtime.onMessage.addListener(
-    function(request, sender, sendResponse) {
-        onSelectionModeStateChange(request.enableBoardItemSelectionMode || state.OFF);
-        sendResponse({ack: "10-4"});
-    });
-
 var onSelectSold = (soldItems) => {
     soldItems.forEach(addRemoveSelectionModeInputElem);
 }
@@ -156,11 +150,17 @@ var createSelectSoldBtn = (soldItems) => {
     return selectSoldBtn;
 }
 
+chrome.runtime.onMessage.addListener(
+    function(request, sender, sendResponse) {
+        onSelectionModeStateChange(request.enableBoardItemSelectionMode || state.OFF);
+        sendResponse({ack: "10-4"});
+    });
+
 const soldItems = [...document.getElementsByTagName('a')]
         .filter(aTag => isItemLink(aTag) && aTag.innerText.indexOf('SOLD') !== -1);
 
 if(soldItems.length > 0) {
-    const plusButton = document.getElementById("db-add-collaborator-btn");
+    const avatar = [...document.getElementsByTagName("a")].find(x => /\/p\/\d+\//.test(x.href) && x.style.backgroundImage);
     const selectSoldBtn = createSelectSoldBtn(soldItems);
-    plusButton.parentElement.insertBefore(selectSoldBtn, plusButton);
+    avatar.parentElement.insertBefore(selectSoldBtn, avatar);
 }

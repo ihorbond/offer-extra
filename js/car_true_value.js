@@ -24,8 +24,9 @@ if (isCarDetailPage && !isDamaged) {
     currentCar.mileage = getMileage();
     currentCar.price = getPrice();
 
-    if (currentCar.year && currentCar.mileage && currentCar.lat && currentCar.lng)
-        showAlternatives();
+    if (currentCar.year && currentCar.mileage && currentCar.lat && currentCar.lng) {
+        //showAlternatives(); - Marketcheck API is not free anymore so this won't work 
+    }
 }
 
 function showAlternatives() {

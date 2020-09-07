@@ -1,6 +1,6 @@
 {
     "name": "Offer Extra",
-    "version": "1.1.1",
+    "version": "2.0.0",
     "description": "Unofficial OfferUp extension",
     "manifest_version": 2,
     "background": {
